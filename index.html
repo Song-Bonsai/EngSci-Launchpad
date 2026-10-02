@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>EngSci First-Year Launchpad</title>
+  <style>
+    /* ─── Design Tokens (light) ─────────────────────────────────── */
+    :root {
+      --bg: #F5F4F0;  --text: #1A1A1A;  --text-muted: #6B6B6B;
+
+      --course-light: #F7EDCB; --course-mid: #EBD385; --course-dark: #4A3500;  /* Skule gold   */
+      --acad-light:   #DDE8F7; --acad-mid:   #A8C5ED; --acad-dark:   #1A3A6B;  /* blue         */
+      --skule-light:  #EEEDFE; --skule-mid:  #C9C6F5; --skule-dark:  #26215C;  /* Skule purple */
+      --care-light:   #F6E1E4; --care-mid:   #E9B6BE; --care-dark:   #4F1621;  /* rose         */
+
+      --hero-bg: #1A1A1A; --hero-text: #F5F4F0; --hero-muted: #8A8A8A; --hero-line: transparent;
+
+      --radius: 12px; --gap-section: 22px; --gap-tile: 8px;
+      --page-pad: clamp(16px, 4vw, 32px);
+    }
+
+    /* ─── Dark mode: follows each visitor's system setting ──────── */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #141517;  --text: #ECEBE7;  --text-muted: #9A9A9A;
+
+        --course-light: #33290F; --course-mid: #4A3B12; --course-dark: #F4E2A8;
+        --acad-light:   #172539; --acad-mid:   #213656; --acad-dark:   #CFE0F7;
+        --skule-light:  #221F40; --skule-mid:  #312C5C; --skule-dark:  #DCD9FB;
+        --care-light:   #3A1A20; --care-mid:   #52242D; --care-dark:   #F5D3D9;
+
+        --hero-bg: #1F2023; --hero-line: #2C2D31;
+      }
+    }
+
+    /* ─── Base ──────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100dvh; max-width: 1100px; margin: 0 auto;
+      padding: var(--page-pad); padding-bottom: calc(var(--page-pad) * 2);
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* Inline SVG icons (no external font needed) */
+    .ic {
+      width: 22px; height: 22px; flex-shrink: 0;
+      fill: none; stroke: currentColor; stroke-width: 1.8;
+      stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    /* ─── Hero ──────────────────────────────────────────────────── */
+    .hero {
+      background: var(--hero-bg); color: var(--hero-text);
+      border: 1px solid var(--hero-line); border-radius: var(--radius);
+      padding: 20px 24px; margin-bottom: var(--gap-section);
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .hero-greeting { font-size: clamp(18px, 4vw, 24px); font-weight: 600; letter-spacing: -0.02em; }
+    .hero-greeting span { color: var(--hero-muted); font-weight: 400; }
+    .hero-meta { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+    .hero-chip { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--hero-muted); }
+    .hero-chip .ic { width: 15px; height: 15px; }
+    .hero-chip strong { color: var(--hero-text); font-weight: 500; }
+    .hero-chip.week strong { color: var(--course-mid); font-weight: 600; }
+
+    /* ─── This-week strip (shown once UNIT_MAP_URL is set) ──────── */
+    .week-strip {
+      display: none; align-items: center; gap: 12px;
+      margin: calc(var(--gap-section) * -0.5) 0 var(--gap-section);
+      padding: 12px 16px; border-radius: var(--radius);
+      border: 1.5px solid var(--course-mid); color: var(--text);
+      font-size: 14px;
+    }
+    .week-strip.on { display: flex; }
+    .week-strip strong { font-weight: 600; }
+    .week-strip .go { margin-left: auto; font-weight: 600; color: var(--course-dark); white-space: nowrap; }
+    .week-strip:hover { background: var(--course-light); }
+
+    /* ─── Sections ──────────────────────────────────────────────── */
+    .cat { margin-bottom: var(--gap-section); }
+    .cat-header {
+      display: flex; align-items: center; gap: 7px;
+      font-size: 13px; font-weight: 600; color: var(--text-muted);
+      margin-bottom: 10px; padding-left: 2px;
+    }
+    .cat-header .ic { width: 16px; height: 16px; }
+
+    .grid { display: grid; gap: var(--gap-tile); grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+    .span-2 { grid-column: span 2; }
+    .span-3 { grid-column: span 3; }
+
+    /* ─── Tiles ─────────────────────────────────────────────────── */
+    .tile {
+      border-radius: var(--radius); padding: 16px;
+      display: flex; flex-direction: column; gap: 10px; min-height: 88px;
+      position: relative; overflow: hidden;
+      transition: filter 0.15s ease, transform 0.12s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    a.tile, .tile.linked { cursor: pointer; }
+    a.tile:hover, .tile.linked:hover   { filter: brightness(0.94); }
+    a.tile:active, .tile.linked:active { transform: scale(0.97); filter: brightness(0.88); }
+    a.tile:focus-visible { outline: 3px solid var(--text); outline-offset: 2px; }
+    @media (prefers-color-scheme: dark) {
+      a.tile:hover, .tile.linked:hover { filter: brightness(1.15); }
+    }
+
+    .tile-body { display: flex; flex-direction: column; gap: 2px; margin-top: auto; }
+    .label { font-size: 14px; font-weight: 600; line-height: 1.2; }
+    .sub   { font-size: 11px; opacity: 0.75; line-height: 1.4; }
+
+    .tile.wide { flex-direction: row; align-items: center; gap: 14px; min-height: 72px; }
+    .tile.wide .ic { width: 26px; height: 26px; }
+    .tile.wide .tile-body { margin-top: 0; }
+
+    /* Course tile: whole tile opens Quercus, a small link opens past exams */
+    .course-code { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+    .stretch::after { content: ""; position: absolute; inset: 0; border-radius: var(--radius); }
+    .stretch:focus-visible { outline: none; }
+    .stretch:focus-visible::after { outline: 3px solid var(--text); outline-offset: -3px; }
+    .exam-link {
+      position: relative; z-index: 1; align-self: flex-start;
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 999px;
+      background: var(--course-dark); color: var(--course-light);
+    }
+    .exam-link .ic { width: 12px; height: 12px; }
+    .exam-link:hover { opacity: 0.85; }
+    .exam-link:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+
+    .tile.pending { background: transparent; border: 1.5px dashed var(--course-mid); color: var(--text); }
+    .tile.pending .pending-note { font-style: italic; }
+
+    /* ─── Colour classes ────────────────────────────────────────── */
+    .course-1 { background: var(--course-light); color: var(--course-dark); }
+    .course-2 { background: var(--course-mid);   color: var(--course-dark); }
+    .acad-1   { background: var(--acad-light);   color: var(--acad-dark); }
+    .acad-2   { background: var(--acad-mid);     color: var(--acad-dark); }
+    .skule-1  { background: var(--skule-light);  color: var(--skule-dark); }
+    .skule-2  { background: var(--skule-mid);    color: var(--skule-dark); }
+    .care-1   { background: var(--care-light);   color: var(--care-dark); }
+    .care-2   { background: var(--care-mid);     color: var(--care-dark); }
+
+    /* ─── Responsive ────────────────────────────────────────────── */
+    @media (max-width: 480px) {
+      .span-2, .span-3 { grid-column: span 1; }
+      .grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+      .hero { padding: 16px 18px; }
+      .tile.wide { grid-column: 1 / -1; }
+    }
+    @media (min-width: 481px) and (max-width: 640px) { .span-3 { grid-column: span 2; } }
+    @media (prefers-reduced-motion: reduce) { .tile { transition: none; } }
+  </style>
+</head>
+<body>
+
+  <!-- ─── Icon sprite: every icon on the page is drawn from here ─── -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M16 3v4M8 3v4M4 11h16"/></symbol>
+    <symbol id="i-calendar-event" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M16 3v4M8 3v4M4 11h16"/><rect x="8" y="14" width="3" height="3"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+    <symbol id="i-school" viewBox="0 0 24 24"><path d="M22 9L12 5 2 9l10 4 10-4v6"/><path d="M6 10.6V16c0 1.7 2.7 3 6 3s6-1.3 6-3v-5.4"/></symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M11 3l1.9 5.1L18 10l-5.1 1.9L11 17l-1.9-5.1L4 10l5.1-1.9z"/><path d="M19 15v5M16.5 17.5h5"/></symbol>
+    <symbol id="i-lifebuoy" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M15 9l3.4-3.4M9 9L5.6 5.6M9 15l-3.4 3.4M15 15l3.4 3.4"/></symbol>
+    <symbol id="i-bridge" viewBox="0 0 24 24"><path d="M2 18h20M2 10h20M4 10v8M20 10v8M4 10c3 4.5 13 4.5 16 0M8 18v-5M12 18v-4M16 18v-5"/></symbol>
+    <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></symbol>
+    <symbol id="i-function" viewBox="0 0 24 24"><path d="M14 4h-1a3 3 0 0 0-3 3v10a3 3 0 0 1-3 3H6M7 11h7M15 12l5 6M20 12l-5 6"/></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24"><path d="M8 8l-4 4 4 4M16 8l4 4-4 4M14 5l-4 14"/></symbol>
+    <symbol id="i-integral" viewBox="0 0 24 24"><path d="M16.5 4.5c-.9-1.1-2.9-1.2-3.7.4C11.6 7.3 12.3 17 11.2 19.4c-.7 1.6-2.7 1.5-3.6.3"/></symbol>
+    <symbol id="i-atom" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.2"/><ellipse cx="12" cy="12" rx="9.5" ry="3.6"/><ellipse cx="12" cy="12" rx="9.5" ry="3.6" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9.5" ry="3.6" transform="rotate(120 12 12)"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></symbol>
+    <symbol id="i-dashboard" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="10" rx="1.5"/><rect x="13" y="3" width="8" height="6" rx="1.5"/><rect x="13" y="11" width="8" height="10" rx="1.5"/><rect x="3" y="15" width="8" height="6" rx="1.5"/></symbol>
+    <symbol id="i-id" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M6 16c.6-1.4 1.7-2 3-2s2.4.6 3 2M15 10h3M15 14h2"/></symbol>
+    <symbol id="i-books" viewBox="0 0 24 24"><path d="M4 4h4v16H4zM10 4h4v16h-4zM15.5 5.2l3.4-.9 3.6 14.9-3.4.9z"/></symbol>
+    <symbol id="i-map" viewBox="0 0 24 24"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-5 6-5s6 1.7 6 5M16 5.2a3 3 0 0 1 0 5.6M18 15.3c1.8.6 3 2 3 4.7"/></symbol>
+    <symbol id="i-pen" viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></symbol>
+    <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></symbol>
+    <symbol id="i-building" viewBox="0 0 24 24"><path d="M4 21V5l8-2v18M12 7l8 2v12M3 21h18M7 8h2M7 12h2M7 16h2M15 12h2M15 16h2"/></symbol>
+  </svg>
+
+  <!-- Hero -->
+  <header class="hero">
+    <div class="hero-greeting" id="js-greeting">Hello, <span>EngSci</span></div>
+    <div class="hero-meta">
+      <div class="hero-chip week"><svg class="ic"><use href="#i-flag"/></svg><strong id="js-week">—</strong></div>
+      <div class="hero-chip"><svg class="ic"><use href="#i-calendar"/></svg><strong id="js-date">—</strong></div>
+      <div class="hero-chip"><svg class="ic"><use href="#i-clock"/></svg><strong id="js-time">—</strong></div>
+    </div>
+  </header>
+
+  <!-- This week → Unit Map (hidden until UNIT_MAP_URL is filled in) -->
+  <a class="week-strip" id="js-week-strip" target="_blank" rel="noopener">
+    <svg class="ic"><use href="#i-map"/></svg>
+    <span><strong id="js-week-strip-label">This week</strong>: see what each course covers</span>
+    <span class="go">Open Unit Map</span>
+  </a>
+
+  <main>
+
+    <!-- Course Materials -->
+    <section class="cat" aria-labelledby="h-courses">
+      <h2 class="cat-header" id="h-courses"><svg class="ic"><use href="#i-folder"/></svg> Course Materials</h2>
+      <div class="grid" id="js-courses"></div>
+      <div class="grid" style="margin-top: var(--gap-tile);">
+        <a href="https://courses.skule.ca" target="_blank" rel="noopener" class="tile course-2 wide span-3">
+          <svg class="ic"><use href="#i-file"/></svg>
+          <div class="tile-body">
+            <div class="label">Skule Courses</div>
+            <div class="sub">Past exams and practice material, by course code</div>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Academic -->
+    <section class="cat" aria-labelledby="h-acad">
+      <h2 class="cat-header" id="h-acad"><svg class="ic"><use href="#i-school"/></svg> Academic</h2>
+      <div class="grid">
+        <a href="https://q.utoronto.ca" target="_blank" rel="noopener" class="tile acad-2 span-2">
+          <svg class="ic"><use href="#i-dashboard"/></svg>
+          <div class="tile-body"><div class="label">Quercus</div><div class="sub">Courses, assignments, grades</div></div>
+        </a>
+        <a href="https://acorn.utoronto.ca" target="_blank" rel="noopener" class="tile acad-1">
+          <svg class="ic"><use href="#i-id"/></svg>
+          <div class="tile-body"><div class="label">ACORN</div><div class="sub">Enrolment and records</div></div>
+        </a>
+        <a href="https://www.library.utoronto.ca" target="_blank" rel="noopener" class="tile acad-1">
+          <svg class="ic"><use href="#i-books"/></svg>
+          <div class="tile-body"><div class="label">Libraries</div></div>
+        </a>
+        <a href="https://map.utoronto.ca" target="_blank" rel="noopener" class="tile acad-1">
+          <svg class="ic"><use href="#i-map"/></svg>
+          <div class="tile-body"><div class="label">Campus map</div></div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Skule & Campus Events -->
+    <section class="cat" aria-labelledby="h-events">
+      <h2 class="cat-header" id="h-events"><svg class="ic"><use href="#i-sparkle"/></svg> Skule &amp; Campus Events</h2>
+      <div class="grid">
+        <a href="https://skule.ca" target="_blank" rel="noopener" class="tile skule-2 span-2">
+          <svg class="ic"><use href="#i-users"/></svg>
+          <div class="tile-body"><div class="label">Skule</div><div class="sub">Engineering Society news, clubs and events</div></div>
+        </a>
+        <a href="https://www.utoronto.ca/events" target="_blank" rel="noopener" class="tile skule-1 span-2">
+          <svg class="ic"><use href="#i-calendar-event"/></svg>
+          <div class="tile-body"><div class="label">Campus events</div><div class="sub">What's on across U of T</div></div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Support -->
+    <section class="cat" aria-labelledby="h-care">
+      <h2 class="cat-header" id="h-care"><svg class="ic"><use href="#i-lifebuoy"/></svg> Support</h2>
+      <div class="grid">
+        <a href="https://ecp.engineering.utoronto.ca" target="_blank" rel="noopener" class="tile care-2 span-2">
+          <svg class="ic"><use href="#i-pen"/></svg>
+          <div class="tile-body"><div class="label">Communication help</div><div class="sub">ECP tutoring, great for Praxis writing</div></div>
+        </a>
+        <a href="https://engsci.utoronto.ca" target="_blank" rel="noopener" class="tile care-1">
+          <svg class="ic"><use href="#i-compass"/></svg>
+          <div class="tile-body"><div class="label">EngSci Office</div><div class="sub">Advising and program info</div></div>
+        </a>
+        <a href="https://undergrad.engineering.utoronto.ca" target="_blank" rel="noopener" class="tile care-1">
+          <svg class="ic"><use href="#i-building"/></svg>
+          <div class="tile-body"><div class="label">Engineering Undergrad</div><div class="sub">Dates, exams, academic support</div></div>
+        </a>
+        <a href="https://studentlife.utoronto.ca" target="_blank" rel="noopener" class="tile care-1 span-2">
+          <svg class="ic"><use href="#i-heart"/></svg>
+          <div class="tile-body"><div class="label">Health and wellness</div><div class="sub">Student Life services and counselling</div></div>
+        </a>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    /* ═══════════════ EDIT THESE EACH TERM ═══════════════════════
+       COURSES  url   = Quercus link (course IDs change every offering)
+                exams = this course's courses.skule.ca page ("" hides the button)
+       TERMS    official dates from the Engineering Academic Calendar
+       UNIT_MAP_URL  relative link to Unit Map ("" hides the this-week strip)                        */
+
+    const COURSES = [
+      { code: "CIV102", name: "Structures and Materials",         icon: "bridge",   url: "https://q.utoronto.ca/courses/467879",         exams: "https://courses.skule.ca/course/CIV102H1" },
+      { code: "ESC101", name: "Praxis I",                         icon: "bulb",     url: "https://q.utoronto.ca/courses/468354/modules", exams: "https://courses.skule.ca/course/ESC101H1" },
+      { code: "ESC103", name: "Engineering Math and Computation", icon: "function", url: "https://q.utoronto.ca/courses/468552",         exams: "https://courses.skule.ca/course/ESC103H1" },
+      { code: "ESC180", name: "Intro to Computer Programming",    icon: "code",     url: "https://q.utoronto.ca/courses/468613/modules", exams: "https://courses.skule.ca/course/ESC180H1" },
+      { code: "ESC194", name: "Calculus I",                       icon: "integral", url: "https://q.utoronto.ca/courses/468638/modules", exams: "https://courses.skule.ca/course/ESC194H1" },
+      { code: "PHY180", name: "Classical Mechanics",              icon: "atom",     url: "https://q.utoronto.ca/courses/469387",         exams: "https://courses.skule.ca/course/PHY180H1" },
+    ];
+
+    const TERMS = [
+      {
+        name: "Fall 2026",
+        classesStart: "2026-09-08",
+        classesEnd:   "2026-12-08",
+        breaks:       [["2026-10-26", "2026-11-01"]],
+        exams:        ["2026-12-10", "2026-12-22"],
+      },
+      // Add Winter 2027 here once the official dates are confirmed
+    ];
+
+    const UNIT_MAP_URL = "unit-map.html#week";   // Unit Map sits beside this file in the same repo
+
+    /* ═══════════════ Rendering (no need to edit below) ═══════════ */
+
+    const icon = name => `<svg class="ic" aria-hidden="true"><use href="#i-${name}"/></svg>`;
+
+    /* Course tiles */
+    const courseGrid = document.getElementById('js-courses');
+    COURSES.forEach((c, i) => {
+      const ready = c.url.trim() !== "";
+      const tile = document.createElement('div');
+      tile.className = ready ? `tile linked ${i % 3 === 0 ? 'course-2' : 'course-1'}` : 'tile pending';
+      const title = ready
+        ? `<a class="stretch" href="${c.url}" target="_blank" rel="noopener">${c.code}</a>`
+        : c.code;
+      tile.innerHTML = `
+        ${icon(c.icon)}
+        <div class="tile-body">
+          <div class="course-code">${title}</div>
+          <div class="sub">${c.name}</div>
+          ${ready ? '' : '<div class="sub pending-note">Link coming soon</div>'}
+        </div>
+        ${c.exams ? `<a class="exam-link" href="${c.exams}" target="_blank" rel="noopener">${icon('file')}Past exams</a>` : ''}`;
+      courseGrid.appendChild(tile);
+    });
+
+    /* Week of term */
+    const day = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+    const MS_DAY = 86400000;
+
+    function termStatus(now) {
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      for (const t of TERMS) {
+        const start = day(t.classesStart), end = day(t.classesEnd);
+        const examStart = day(t.exams[0]), examEnd = day(t.exams[1]);
+        const monday = new Date(start); monday.setDate(start.getDate() - ((start.getDay() + 6) % 7));
+
+        if (today < monday) {
+          const days = Math.ceil((start - today) / MS_DAY);
+          if (days <= 21) return { label: `Classes start in ${days} day${days === 1 ? '' : 's'}`, week: null };
+          continue;
+        }
+        if (today <= end) {
+          let breakWeeks = 0;
+          for (const [b0, b1] of t.breaks) {
+            const bs = day(b0), be = day(b1);
+            if (today >= bs && today <= be) return { label: 'Study break', week: null };
+            if (today > be) breakWeeks += Math.round((be - bs) / MS_DAY / 7) || 1;
+          }
+          const week = Math.floor((today - monday) / MS_DAY / 7) + 1 - breakWeeks;
+          return { label: `Week ${week}`, week };
+        }
+        if (today < examStart) return { label: 'Study days', week: null };
+        if (today <= examEnd)  return { label: 'Exam period', week: null };
+      }
+      return { label: 'Between terms', week: null };
+    }
+
+    const status = termStatus(new Date());
+    document.getElementById('js-week').textContent = status.label;
+
+    if (UNIT_MAP_URL) {
+      const strip = document.getElementById('js-week-strip');
+      strip.href = UNIT_MAP_URL;
+      if (!/^https?:/.test(UNIT_MAP_URL)) strip.removeAttribute('target');   // same site: open in this tab
+      strip.classList.add('on');
+      document.getElementById('js-week-strip-label').textContent = status.week ? `Week ${status.week}` : 'This week';
+    }
+
+    /* Clock and greeting */
+    function tick() {
+      const now = new Date();
+      document.getElementById('js-date').textContent =
+        now.toLocaleDateString('en-CA', { weekday: 'short', month: 'short', day: 'numeric' });
+      document.getElementById('js-time').textContent =
+        now.toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit' });
+    }
+    tick();
+    setInterval(tick, 1000);
+
+    const hour = new Date().getHours();
+    const salutation = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+    document.getElementById('js-greeting').innerHTML = `${salutation}, <span>EngSci</span>`;
+  </script>
+</body>
+</html>
