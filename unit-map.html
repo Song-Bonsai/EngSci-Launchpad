@@ -164,6 +164,12 @@
   .missing-banner .mb-icon{flex-shrink:0; width:20px; height:20px; margin-top:1px; color:var(--due)}
   .missing-banner .mb-codes{font:600 13px "IBM Plex Mono", monospace; color:var(--due)}
 
+  /* Back to launchpad */
+  .back-link{display:inline-flex; align-items:center; gap:6px; margin-bottom:14px; padding:6px 12px 6px 10px; border-radius:999px; background:var(--surface); border:1px solid var(--line); box-shadow:var(--shadow); color:var(--ink-soft); font:500 13px "IBM Plex Sans", system-ui, sans-serif; text-decoration:none; transition:color .15s ease, border-color .15s ease}
+  .back-link:hover{color:var(--ink); border-color:var(--ink-soft)}
+  .back-link:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+  .back-link svg{width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
+
   .welcome{padding:22px; display:grid; gap:14px}
   .welcome h2{font:700 24px/1.15 "Bricolage Grotesque", sans-serif; margin:0; text-wrap:balance}
   .welcome p{margin:0; max-width:62ch; color:var(--ink-soft)}
@@ -238,6 +244,7 @@
 </head>
 <body>
 <div class="wrap">
+  <a class="back-link" href="index.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>Launchpad</a>
   <header class="top">
     <div class="brand">
       <span class="eyebrow">EngSci · weekly breakdown</span>
